@@ -26,7 +26,7 @@
   "origin":0,
   "parent":{
     "name":"Presets",
-    "path":"folders/SittingDuck's CRT Shader/Presets.yy",
+    "path":"folders/external/SittingDuck's CRT Shader/Presets.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

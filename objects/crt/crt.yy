@@ -14,7 +14,7 @@
   "overriddenProperties":[],
   "parent":{
     "name":"Base Preset (do not delete)",
-    "path":"folders/SittingDuck's CRT Shader/Presets/Base Preset (do not delete).yy",
+    "path":"folders/external/SittingDuck's CRT Shader/Presets/Base Preset (do not delete).yy",
   },
   "parentObjectId":null,
   "persistent":true,

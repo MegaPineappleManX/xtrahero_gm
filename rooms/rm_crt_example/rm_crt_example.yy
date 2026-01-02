@@ -18,7 +18,7 @@
   "name":"rm_crt_example",
   "parent":{
     "name":"Example and Docs",
-    "path":"folders/Example and Docs.yy",
+    "path":"folders/external/Example and Docs.yy",
   },
   "parentRoom":null,
   "physicsSettings":{

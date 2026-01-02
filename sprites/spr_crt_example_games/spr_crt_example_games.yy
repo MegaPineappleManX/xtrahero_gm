@@ -37,7 +37,7 @@
   "origin":0,
   "parent":{
     "name":"Example and Docs",
-    "path":"folders/Example and Docs.yy",
+    "path":"folders/external/Example and Docs.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

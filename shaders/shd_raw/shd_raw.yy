@@ -4,7 +4,7 @@
   "name":"shd_raw",
   "parent":{
     "name":"GL ES",
-    "path":"folders/SittingDuck's CRT Shader/GL ES.yy",
+    "path":"folders/external/SittingDuck's CRT Shader/GL ES.yy",
   },
   "resourceType":"GMShader",
   "resourceVersion":"2.0",

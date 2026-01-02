@@ -10,7 +10,7 @@
   ],
   "parent":{
     "name":"Presets",
-    "path":"folders/SittingDuck's CRT Shader/Presets.yy",
+    "path":"folders/external/SittingDuck's CRT Shader/Presets.yy",
   },
   "parentObjectId":{
     "name":"crt",

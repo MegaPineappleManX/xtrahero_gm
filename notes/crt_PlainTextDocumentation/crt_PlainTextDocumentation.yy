@@ -4,7 +4,7 @@
   "name":"crt_PlainTextDocumentation",
   "parent":{
     "name":"Example and Docs",
-    "path":"folders/Example and Docs.yy",
+    "path":"folders/external/Example and Docs.yy",
   },
   "resourceType":"GMNotes",
   "resourceVersion":"2.0",

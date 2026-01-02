@@ -3,4 +3,4 @@ camY = 0;
 
 trailSpeed = .25;
 
-targetObject = oXtraHero;
+targetObject = oPlayer;

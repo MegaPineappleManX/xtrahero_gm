@@ -3,8 +3,8 @@
   "%Name":"Shader1",
   "name":"Shader1",
   "parent":{
-    "name":"Blank Pixel Game",
-    "path":"Blank Pixel Game.yyp",
+    "name":"shaders",
+    "path":"folders/shaders.yy",
   },
   "resourceType":"GMShader",
   "resourceVersion":"2.0",
