@@ -21,12 +21,13 @@ gravityPerFrame = .25;
 jumpVelocityPerFrame = 0;
 
 DashFramesRemaining = 0;
-DashTimeFrames = 60;
+DashTimeFrames = 30;
 
 dashKeyBuffered = false;
 dashKeyBufferTimer = 0;
 jumpKeyBuffered = false;
 jumpKeyBufferTimer = 0;
+preventEarlyWallJumpTimer = 0;
 bufferTime = 3;
 
 xVelocity = 0;
@@ -132,6 +133,7 @@ function changeState(_value) {
 		#region JumpingState
 		case PlayerStates.JumpingState:
 			sprite_index = jumpSpr;
+			preventEarlyWallJumpTimer = bufferTime;
 			if _previousState != PlayerStates.WallJumpingState && _previousState != PlayerStates.WallDashJumpingState {
 				jumpVelocityPerFrame =  jumpSpeed;
 			}
@@ -239,11 +241,14 @@ function processState() {
 				
 				basicMovement();
 				
-				for (var i = abs(yVelocity); i > 0; i--) {
-					if place_meeting(x + moveDir, y , oWall) && !place_meeting(x, y - 1, oWall) && yVelocity > 0 {
+				for (var i = abs(yVelocity) + 1; i > 0; i--) {
+					if place_meeting(x + moveDir, y , oWall) && 
+					  !place_meeting(x, y + 1, oWall) {
 						changeState(PlayerStates.WallSlidingState); 
+						return;
 					} else if place_meeting(x , y + sign(yVelocity), oWall) { 
 						changeState(PlayerStates.IdleState); 
+						return;
 					} else {
 						y += sign(yVelocity);	
 					}
@@ -259,6 +264,7 @@ function processState() {
 				xVelocity = dashSpeed * moveDir + xSubPixel;
 				yVelocity = jumpVelocityPerFrame + ySubPixel;
 				jumpVelocityPerFrame += gravityPerFrame;
+				preventEarlyWallJumpTimer--;
 				
 				removeSubpixels();
 				
@@ -266,10 +272,10 @@ function processState() {
 				
 				for (var i = abs(yVelocity); i > 0; i--) {
 					if place_meeting(x + moveDir, y , oWall) && 
-					  !place_meeting(x, y - 1, oWall) &&
-					  yVelocity != 0 &&
-					  jumpKeyBuffered {
-						changeState(PlayerStates.WallJumpingState); 
+					  ((!place_meeting(x, y + 1, oWall) && jumpKeyPressed) ||
+					  ( preventEarlyWallJumpTimer < 0 && jumpKeyBuffered)) {
+						changeState(PlayerStates.WallDashJumpingState);
+						return;
 					} else if place_meeting(x, y + sign(yVelocity), oWall) {
 						yVelocity = 0;
 						changeState(PlayerStates.DashJumpingFallingState); 
@@ -310,13 +316,14 @@ function processState() {
 				
 				basicMovement();
 				
-				for (var i = abs(yVelocity); i > 0; i--) {
+				for (var i = abs(yVelocity) + 1; i > 0; i--) {
 					if place_meeting(x + moveDir, y , oWall) && 
-					  !place_meeting(x, y - 1, oWall) && 
-					  yVelocity > 0 {
+					  !place_meeting(x, y + 1, oWall) {
 						changeState(PlayerStates.WallSlidingState); 
+						return;
 					} else if place_meeting(x , y + sign(yVelocity), oWall) { 
 						changeState(PlayerStates.IdleState); 
+						return;
 					} else {
 						y += sign(yVelocity);	
 					}
@@ -344,6 +351,7 @@ function processState() {
 				xVelocity = moveSpeed * moveDir + xSubPixel;
 				yVelocity = jumpVelocityPerFrame + ySubPixel;
 				jumpVelocityPerFrame += gravityPerFrame;
+				preventEarlyWallJumpTimer--;
 				
 				removeSubpixels();
 				
@@ -351,10 +359,10 @@ function processState() {
 				
 				for (var i = abs(yVelocity); i > 0; i--) {
 					if place_meeting(x + moveDir, y , oWall) && 
-					  !place_meeting(x, y - 1, oWall) &&
-					  yVelocity != 0 &&
-					  jumpKeyBuffered {
-						changeState(PlayerStates.WallJumpingState); 
+					  ((!place_meeting(x, y + 1, oWall) && jumpKeyPressed) ||
+					  ( preventEarlyWallJumpTimer < 0 && jumpKeyBuffered)) {
+						changeState(PlayerStates.WallJumpingState);
+						return;
 					} else if place_meeting(x, y + sign(yVelocity), oWall) {
 						yVelocity = 0;
 						changeState(PlayerStates.FallingState); 
@@ -422,7 +430,8 @@ function processState() {
 		case PlayerStates.WallJumpingState:
 			wallJumpFramesRemaining--;
 			
-			if !jumpKey { changeState(PlayerStates.FallingState); 
+			if !jumpKey && wallJumpFramesRemaining > wallJumpTimeFrames - bufferTime { 
+				changeState(PlayerStates.FallingState); 
 			} else {
 				xVelocity = moveSpeed * wallSlideDir + xSubPixel;
 				yVelocity = jumpVelocityPerFrame + ySubPixel;
