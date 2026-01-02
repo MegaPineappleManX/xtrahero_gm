@@ -1,3 +1,7 @@
+function isDebug() {
+	return true;
+}
+
 function setupControls()
 {
 	bufferTime = 3;
@@ -37,11 +41,18 @@ function getControls()
 	}
 }
 
-function getFramesElapsed()
+function getFramesSinceLastStep()
 {
 	var _target_delta = 1/60;
 	
 	var _actual_delta = delta_time/1000000;
 	var _frames = _actual_delta/_target_delta;
 	return _frames;
+}
+
+// Math
+function trunc(_value)
+{
+	var fraction = frac(_value);
+	return _value - fraction;
 }

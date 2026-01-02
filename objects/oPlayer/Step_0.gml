@@ -1,12 +1,12 @@
 getControls();
 
-framesToMove += getFramesElapsed();
+framesToProcess  += getFramesSinceLastStep();
 
 // Do the movement for each game frame that has elapsed since the last real frame
 // Game frames are 60 FPS but the game may deviate. This will cause all movement to be accurate
-while framesToMove >= 1 
+while framesToProcess  >= 1 
 {
-	framesToMove--;
+	framesToProcess --;
 	
 	
 // X Movement
@@ -14,38 +14,35 @@ while framesToMove >= 1
 	facingDir = moveDir != 0 ? moveDir : facingDir;
 
 	moveIndex = dashKey;
-	xSpd = moveDir * moveSpd[moveIndex];
+	xSpd = moveDir * moveSpd[moveIndex] + xSubPixel;
 
-	var _subPixel = 1;
 	// TODO: Maybe rework this to check each pixel for speeds greater than tile size?
-	if place_meeting(x + xSpd, y, oWall) 
+	if place_meeting(x + trunc(xSpd), y, oWall) 
 	{
-		// Up Slops
-		if !place_meeting(x + xSpd, y - abs(xSpd) - 1 , oWall) 
+		// Up Slopes
+		if !place_meeting(x + trunc(xSpd), y - abs(trunc(xSpd)) , oWall) 
 		{
-			while place_meeting(x + xSpd, y, oWall) 
+			while place_meeting(x + trunc(xSpd), y, oWall) 
 			{
-				y -= _subPixel;
+				y--;
 			}
 		}
 		// Normal Movement
 		else 
 		{
 			// Ceiling Slope
-			if !place_meeting(x + xSpd, y + abs(xSpd) + 1, oWall)
+			if !place_meeting(x + trunc(xSpd), y + abs(trunc(xSpd)), oWall)
 			{
-				while place_meeting(x + xSpd, y, oWall) 
+				while place_meeting(x + trunc(xSpd), y, oWall) 
 				{
-					y += _subPixel;
+					y++;
 				}
 			}
 			else 
 			{
-				var _pixelCheck = _subPixel * sign(xSpd);
-	
-				while !place_meeting(x + _pixelCheck, y, oWall) 
+				while !place_meeting(x + sign(xSpd), y, oWall) 
 				{
-					x += _pixelCheck;
+					x += sign(xSpd);
 				}
 	
 				xSpd = 0;
@@ -53,15 +50,17 @@ while framesToMove >= 1
 		}
 	}
 	//Down Slopes
-	if ySpd >= 0 && !place_meeting(x + xSpd, y + 1, oWall) && place_meeting(x + xSpd, y + abs(xSpd) + 1, oWall)
+	if ySpd >= 0 && !place_meeting(x + trunc(xSpd), y + 1, oWall) && place_meeting(x + trunc(xSpd), y + abs(trunc(xSpd)) + 1, oWall)
 	{
-		while !place_meeting(x + xSpd, y + _subPixel, oWall) 
+		while !place_meeting(x + trunc(xSpd), y + 1, oWall) 
 		{
-			y += _subPixel;
+			y++;
 		}
 	}
 	
-
+	// We only want to move in whole pixels
+	xSubPixel = frac(xSpd);
+	xSpd = trunc(xSpd);
 	x += xSpd;
 
 
@@ -72,12 +71,11 @@ while framesToMove >= 1
 	}
 	else 
 	{
-		ySpd += grav;
+		ySpd += grav + ySubPixel;
+		if grav > termVel { ySpd = termVel; };
 		setGrounded(false);
 	}
 
-	if grav > termVel { ySpd = termVel; };
-	
 	
 	// Jump
 	if jumpKeyBuffered && jumpCount < jumpMaxCount
@@ -93,35 +91,62 @@ while framesToMove >= 1
 		ySpd = jumpSpd[jumpCount-1];
 	}
 	
-	if !jumpKey && ySpd < 0
+	if !jumpKey && trunc(ySpd) < 0
 	{
 		ySpd = 0;
 	}
 	
-	//var _subPixel = .5;
-	var spotToCheck = ySpd >= 0 ? y + ySpd : y + ySpd; 
-	if place_meeting(x, spotToCheck , oWall) 
+	// Up Y Collision
+	if ySpd < 0 && place_meeting( x, y + trunc(ySpd), oWall)
 	{
-		show_debug_message("AHHHH {0}", x);
-		var _pixelCheck = _subPixel * sign(ySpd);
-		while !place_meeting(x, y + _pixelCheck, oWall) 
+		// jump into upleft slope ceil
+		if moveDir == 0 && !place_meeting( x - abs(trunc(ySpd)) - 1, y + trunc(ySpd), oWall) {
+			while place_meeting(x, y + trunc(ySpd), oWall) 
+			{
+				x--;
+			}
+		}
+		// jump into upright slope ceil
+		else if moveDir == 0 && !place_meeting( x + abs(trunc(ySpd)) + 1, y + trunc(ySpd), oWall) {
+			while place_meeting(x, y + trunc(ySpd), oWall) 
+			{
+				x++;
+			}
+		}
+		//normal y up collision
+		else
 		{
-			y += _pixelCheck;
+			// Ceiling bonk 
+			if trunc(ySpd) < 0
+			{
+				jumpHoldTimer = 0;	
+			}
 		}
 		
-		// Ceiling bonk 
-		if ySpd < 0
+	}
+	
+	// Down Y collision
+	if place_meeting(x, y + trunc(ySpd) , oWall) 
+	{
+		while !place_meeting(x, y + sign(ySpd), oWall) 
 		{
-			jumpHoldTimer = 0;	
+			y += sign(ySpd);
 		}
 		
 		ySpd = 0;
 	}
+	else if ySpd > 0 && moveDir != 0 && place_meeting(x + moveDir, y + trunc(ySpd), oWall)
+	{
+		wallSliding = true;
+	}
 	
-	if ySpd >= 0 && place_meeting(x, y + 1, oWall) 
+	if trunc(ySpd) >= 0 && place_meeting(x, y + 1, oWall) 
 	{
 		setGrounded(true);
 	}
 	
+	// We only want to move in whole pixels
+	ySubPixel = frac(ySpd);
+	ySpd = trunc(ySpd);
 	y += ySpd;
 }

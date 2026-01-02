@@ -1,16 +1,18 @@
 setupControls();
 
+framesToProcess = 0;
+
 // Sprites
 idleSpr = sPlayerIdle;
 walkSpr = sPlayerWalk;
 runSpr = sPlayerRun;
 jumpSpr = sPlayerJump;
+danceSpr = sPlayerDance;
 
 maskSpr = idleSpr;
 mask_index = maskSpr;
 
 // Moving 
-framesToMove = 0;
 
 moveSpd[0] = 2;
 moveSpd[1] = 3.5;
@@ -19,6 +21,8 @@ moveDir = 0;
 facingDir = 1;
 xSpd = 0;
 ySpd = 0;
+xSubPixel = 0;
+ySubPixel = 0;
 
 // Jumping
 grav = .25;
@@ -33,6 +37,7 @@ grounded = true;
 jumpCount = 0;
 coyoteHangTimer = 0;
 coyoteJumpTimer = 0;
+
 
 function setGrounded(_val = true)
 {
