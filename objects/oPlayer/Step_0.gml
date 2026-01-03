@@ -50,11 +50,17 @@ while framesToProcess  >= 1
 		}
 	}
 	//Down Slopes
-	if ySpd >= 0 && !place_meeting(x + trunc(xSpd), y + 1, oWall) && place_meeting(x + trunc(xSpd), y + abs(trunc(xSpd)) + 1, oWall)
+	if ySpd >= 0 && !place_meeting(x + trunc(xSpd), y + 1, oWall) 
+	&& place_meeting(x + trunc(xSpd), y + abs(trunc(xSpd)) + 1, oWall)
 	{
-		while !place_meeting(x + trunc(xSpd), y + 1, oWall) 
+		var _platform = checkForSemiSolidPlatforms(x + trunc(xSpd), y + abs(trunc(xSpd)))
+		
+		if !instance_exists(_platform) 
 		{
-			y++;
+			while !place_meeting(x + trunc(xSpd), y + 1, oWall) 
+			{
+				y++;
+			}
 		}
 	}
 	
@@ -78,7 +84,7 @@ while framesToProcess  >= 1
 
 	
 	// Jump
-	if jumpKeyBuffered && jumpCount < jumpMaxCount
+	if jumpKeyBuffered && !downKey && jumpCount < jumpMaxCount
 	{
 		setGrounded(false);
 		jumpKeyBuffered = false;
@@ -120,13 +126,42 @@ while framesToProcess  >= 1
 			if trunc(ySpd) < 0
 			{
 				jumpHoldTimer = 0;	
+				ySpd = 0;
 			}
 		}
-		
 	}
 	
+	show_debug_message(movementParent);
+	
+	if downKey && jumpKeyPressed && instance_exists(movementParent)
+	{
+		if movementParent.object_index == oSemiSolidPlatform || object_is_ancestor(movementParent.object_index, oSemiSolidPlatform)
+		{
+			var _yCheck = max(1, movementParent.yDelta + 1);
+			if !place_meeting(x, y + _yCheck, oWall)
+			{
+				y++;
+				ySpd = _yCheck;
+				previousMovementParent = movementParent;
+				setGrounded(false);
+			}
+		}
+	}
+	
+	// We only want to move in whole pixels
+	ySubPixel = frac(ySpd);
+	ySpd = trunc(ySpd);
+	y += ySpd;
+	
+	if instance_exists(previousMovementParent) && !place_meeting(x, y, previousMovementParent)
+	{
+		previousMovementParent = noone;	
+	}
+	
+#region oldCode
 	// Down Y collision
-	if place_meeting(x, y + trunc(ySpd) , oWall) 
+	/* old down collision
+ 	if place_meeting(x, y + trunc(ySpd) , oWall) 
 	{
 		while !place_meeting(x, y + sign(ySpd), oWall) 
 		{
@@ -135,18 +170,124 @@ while framesToProcess  >= 1
 		
 		ySpd = 0;
 	}
-	else if ySpd > 0 && moveDir != 0 && place_meeting(x + moveDir, y + trunc(ySpd), oWall)
-	{
-		wallSliding = true;
-	}
 	
 	if trunc(ySpd) >= 0 && place_meeting(x, y + 1, oWall) 
 	{
 		setGrounded(true);
 	}
+	*/
+#endregion
+
+
+	//check for solid/semisolid platforms under me
+	var _yCheckRange = max (0, ySpd);
+	var _objects = ds_list_create();
+	var _validObjects = [ oWall, oSemiSolidMovablePlatform, oSemiSolidPlatform ];
+	var _objectCount = instance_place_list(x, y + 1 + _yCheckRange + movementParentMaxYSpd, _validObjects, _objects, false);
 	
-	// We only want to move in whole pixels
-	ySubPixel = frac(ySpd);
-	ySpd = trunc(ySpd);
-	y += ySpd;
+	var _yCheck = y + 1 + _yCheckRange;
+	if instance_exists(movementParent) { _yCheck += max(0, movementParent.yDelta); }
+	var _checkedPlatform = checkForSemiSolidPlatforms(x, _yCheck);
+	
+	for (var i = 0; i < _objectCount; ++i) 
+	{
+		var _object = _objects[| i];
+		if _object != previousMovementParent
+		&& (_object.yDelta <= ySpd || instance_exists(movementParent)) 
+		&& (_object.yDelta > 0 || place_meeting(x, y + 1 + _yCheckRange, _object))
+		|| (_object == _checkedPlatform)
+		{
+			
+			if _object.object_index == oWall
+			|| object_is_ancestor(_object.object_index, oWall)
+			|| floor(bbox_bottom) <= _object.bbox_top - _object.yDelta
+			{
+				// return highest valid object
+				if !instance_exists(movementParent)
+				|| _object.bbox_top + _object.yDelta <= movementParent.bbox_top + movementParent.yDelta
+				|| _object.bbox_top + _object.yDelta <= bbox_bottom
+				{
+					movementParent = _object;
+					break;
+				}
+			}
+		}
+	}
+	ds_list_destroy(_objects);
+	
+	if instance_exists(movementParent) && !place_meeting(x, y + ySpd + movementParentMaxYSpd, movementParent) 
+	{
+		movementParent = noone;	
+	}
+	
+	if instance_exists(movementParent) 
+	{
+		while !place_meeting(x, y + 1, movementParent) && !place_meeting(x, y, oWall)
+		{
+			
+			y++;
+		}
+		
+		if movementParent.object_index == oSemiSolidPlatform || object_is_ancestor(movementParent.object_index, oSemiSolidPlatform)
+		{
+			while place_meeting(x, y, movementParent) 
+			{
+				y--;	
+			}
+		}
+		
+		 ySpd = 0;
+		 setGrounded(true);
+	}
+}
+
+
+// Moving Platform bullshit
+movementParentXSpd = 0;
+if instance_exists(movementParent) { movementParentXSpd = movementParent.xDelta; }
+
+if place_meeting(x + movementParentXSpd, y, oWall)
+{
+	while !place_meeting(x + sign(movementParentXSpd), y, oWall)
+	{
+		x += sign(movementParentXSpd);	
+	}
+	movementParentXSpd = 0;
+}
+x += movementParentXSpd;
+
+// Shouldnt be needed snaps to platform
+if instance_exists(movementParent) && movementParent.yDelta != 0
+{
+	if !place_meeting(x, movementParent.bbox_top, oWall)
+	&& movementParent.bbox_top >= bbox_bottom - movementParentMaxYSpd
+	{
+		y = movementParent.bbox_top;
+	}
+	
+	if movementParent.yDelta < 0 && place_meeting(x, y + movementParent.yDelta, oWall)
+	{
+		if movementParent.object_index == oSemiSolidPlatform
+		|| object_is_ancestor(movementParent.object_index, oSemiSolidPlatform)
+		{
+			while place_meeting(x, y + movementParent.yDelta, oWall)
+			{
+				y++;
+			}
+			
+			while place_meeting(x, y , oWall)
+			{
+				y--;
+			}
+			
+			setGrounded(false);
+		}
+	}
+}
+
+if place_meeting(x, y, oWall) { 
+	
+	//while place_meeting(x, y - ySpd, oWall) { y ++; }
+	//while place_meeting(x, y + ySpd, oWall) { y --; }
+	//else { /*kill player*/ }
 }

@@ -1,5 +1,7 @@
 initialState = PlayerStates.IdleState;
 state = initialState;
+previousState = initialState;
+framesInState = 0;
 
 frame = 0;
 framesSinceLastStep = 0;
@@ -43,6 +45,7 @@ wallJumpTimeFrames = 10;
 wallDashJumpTimeFrames = 10;
 
 // Sprites
+depth = -30;
 idleSpr = sXtraHero;
 dashSpr  = sXtraHeroDashing;
 runSpr = sXtraHeroRunning;
@@ -80,19 +83,20 @@ function removeSubpixels() {
 	
 function changeState(_value) {
 	show_debug_message("Entering State: {0}", _value);
-	var _previousState = state;
+	previousState = state;
+	framesInState = 0;
 	state = _value;
 		switch (state) {
 		#region CoyoteTimeState
 		case PlayerStates.CoyoteTimeState			   		:
-			if _previousState != PlayerStates.DashCoyoteTimeState {
+			if previousState != PlayerStates.DashCoyoteTimeState {
 				coyoteFramesRemaining = coyoteTimeFrames;
 			}
 			break;
 		#endregion
 		#region DashCoyoteTimeState
 		case PlayerStates.DashCoyoteTimeState		   		:
-			if _previousState != PlayerStates.CoyoteTimeState {
+			if previousState != PlayerStates.CoyoteTimeState {
 				coyoteFramesRemaining = coyoteTimeFrames;
 			}
 			break;
@@ -106,7 +110,8 @@ function changeState(_value) {
 		#region DashJumpingState
 		case PlayerStates.DashJumpingState:
 			sprite_index = jumpSpr;
-			if _previousState != PlayerStates.WallJumpingState && _previousState != PlayerStates.WallDashJumpingState {
+			preventEarlyWallJumpTimer = bufferTime;
+			if previousState != PlayerStates.WallJumpingState && previousState != PlayerStates.WallDashJumpingState {
 				jumpVelocityPerFrame =  jumpSpeed;
 			}
 			break;
@@ -134,7 +139,7 @@ function changeState(_value) {
 		case PlayerStates.JumpingState:
 			sprite_index = jumpSpr;
 			preventEarlyWallJumpTimer = bufferTime;
-			if _previousState != PlayerStates.WallJumpingState && _previousState != PlayerStates.WallDashJumpingState {
+			if previousState != PlayerStates.WallJumpingState && previousState != PlayerStates.WallDashJumpingState {
 				jumpVelocityPerFrame =  jumpSpeed;
 			}
 			break;
@@ -178,6 +183,7 @@ function changeState(_value) {
 function processState() {
 	//show_debug_message("frame {4}, x {5} | y {6} | xVelocity {2} | yVelocity {3} | subPixel {0} | ySubPixel {1} ", xSubPixel, ySubPixel, xVelocity, yVelocity, frame, x, y);
 	show_debug_message("frame {0}, jumpKeyBuffered {1}  ", frame, jumpKeyBuffered);
+	framesInState++;
 	switch (state) {
 		#region CoyoteTimeState
 		case PlayerStates.CoyoteTimeState:

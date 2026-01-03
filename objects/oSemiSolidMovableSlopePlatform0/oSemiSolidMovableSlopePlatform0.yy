@@ -1,17 +1,18 @@
 {
   "$GMObject":"",
-  "%Name":"oWall",
-  "eventList":[
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-  ],
+  "%Name":"oSemiSolidMovableSlopePlatform0",
+  "eventList":[],
   "managed":true,
-  "name":"oWall",
+  "name":"oSemiSolidMovableSlopePlatform0",
   "overriddenProperties":[],
   "parent":{
     "name":"objects",
     "path":"folders/objects.yy",
   },
-  "parentObjectId":null,
+  "parentObjectId":{
+    "name":"oSemiSolidPlatform",
+    "path":"objects/oSemiSolidPlatform/oSemiSolidPlatform.yy",
+  },
   "persistent":false,
   "physicsAngularDamping":0.1,
   "physicsDensity":0.5,
@@ -30,8 +31,8 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"sWall",
-    "path":"sprites/sWall/sWall.yy",
+    "name":"sSemiSolidMovableSlopePlatform0",
+    "path":"sprites/sSemiSolidMovableSlopePlatform0/sSemiSolidMovableSlopePlatform0.yy",
   },
   "spriteMaskId":null,
   "visible":true,

@@ -21,6 +21,7 @@ function getControls()
 	
 	rightKey = keyboard_check(ord("D")) || gamepad_button_check(0, gp_padr);
 	leftKey = keyboard_check(ord("A")) || gamepad_button_check(0, gp_padl);
+	downKey = keyboard_check(ord("S")) || gamepad_button_check(0, gp_padd);
 
 	jumpKeyPressed = keyboard_check_pressed(vk_space) || gamepad_button_check_pressed(0, gp_face1);
 	jumpKey = keyboard_check(vk_space) || gamepad_button_check(0, gp_face1);
